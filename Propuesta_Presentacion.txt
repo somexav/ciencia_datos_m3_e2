@@ -1,0 +1,122 @@
+===========================================================
+PROPUESTA DE PRESENTACIÓN EJECUTIVA
+Proyecto: Segmentación de Jugadores FIFA19 con PCA + K-Means
+Equipo: 5
+===========================================================
+
+-------------------------------------------------------------------
+SLIDE 1: PORTADA / CONTEXTO DEL PROYECTO
+-------------------------------------------------------------------
+TÍTULO: Segmentación Inteligente de Jugadores de Fútbol — FIFA19
+
+TEXTO:
+¿Cómo descubrir el perfil real de un jugador más allá de su posición
+en el campo?
+
+Este proyecto aplica técnicas avanzadas de Machine Learning No Supervisado
+sobre el dataset FIFA19 (más de 15,000 jugadores de campo) con el objetivo
+de agrupar jugadores en segmentos basados únicamente en sus habilidades
+técnicas y físicas intrínsecas.
+
+Metodología empleada:
+  → Selección de 20 variables de habilidades puras
+  → Reducción de dimensionalidad con PCA (6 componentes | 88.88% varianza)
+  → Agrupamiento con K-Means (k=5 clusters)
+
+-------------------------------------------------------------------
+SLIDE 2: REDUCCIÓN DE DIMENSIONALIDAD (PCA)
+-------------------------------------------------------------------
+TÍTULO: De 20 Variables a 6 Componentes — Sin Perder Información Clave
+
+TEXTO:
+El espacio de 20 variables presentaba alta multicolinealidad entre
+grupos de habilidades relacionadas (ej. Dribbling, ShortPassing, Crossing).
+Aplicar PCA permitió:
+
+  ✔ Eliminar la redundancia informativa
+  ✔ Conservar el 88.88% de la varianza total del dataset
+  ✔ Reducir el ruido antes del clustering
+  ✔ Garantizar que K-Means opere en un espacio limpio y esférico
+
+Umbral superado: El proyecto estableció >85% de varianza como criterio
+mínimo de retención. Los 6 componentes lo superan.
+
+[GRÁFICA REPRESENTATIVA — Scree Plot (Celda 8)]
+Descripción: El gráfico de varianza acumulada demuestra que a partir
+del 6° componente la curva se estabiliza, confirmando la elección óptima
+de dimensionalidad. La línea de corte marca claramente el 88.88%.
+
+-------------------------------------------------------------------
+SLIDE 3: DETERMINACIÓN DEL NÚMERO ÓPTIMO DE CLUSTERS
+-------------------------------------------------------------------
+TÍTULO: k=5 — El Equilibrio Perfecto entre Cohesión y Separación
+
+TEXTO:
+Para determinar el número óptimo de grupos se combinaron dos criterios:
+
+  → Método del Codo: La inercia intra-cluster (distorsión) cae
+    drásticamente hasta k=5 y se estabiliza después.
+
+  → Coeficiente de Silueta: Alcanza su valor máximo en k=5,
+    indicando la mejor separación entre grupos.
+
+Resultado: Coeficiente de Silueta global = 0.2918 para k=5.
+Distribución de jugadores por cluster:
+  Cluster 0 → 28.3%  |  Cluster 1 → 10.7%
+  Cluster 2 → 18.8%  |  Cluster 3 → 24.7%  |  Cluster 4 → 17.5%
+
+-------------------------------------------------------------------
+SLIDE 4: PERFILES DE LOS 5 CLUSTERS — ARQUETIPOS DE JUGADORES
+-------------------------------------------------------------------
+TÍTULO: 5 Arquetipos Tácticos Descubiertos por el Modelo
+
+TEXTO:
+El análisis de los centroides (Z-scores) de cada cluster revela
+perfiles de jugadores con identidades tácticas bien diferenciadas:
+
+┌─────────────┬────────────────────────────────────────────────────────┐
+│  Cluster 0  │ MEDIOCAMPISTA DEFENSIVO: Destaca en Interceptions,     │
+│  (28.3%)    │ SlidingTackle, StandingTackle, Marking, LongPassing.   │
+│             │ Perfil: Volante de recuperación, equilibrio del equipo. │
+├─────────────┼────────────────────────────────────────────────────────┤
+│  Cluster 1  │ ESPECIALISTA FÍSICO: Alto en Weight y Height.          │
+│  (10.7%)    │ Bajo en habilidades técnicas (Dribbling, ShortPassing). │
+│             │ Perfil: Delantero de área o defensa corpulento.         │
+├─────────────┼────────────────────────────────────────────────────────┤
+│  Cluster 2  │ ATACANTE TÉCNICO: Destaca en Finishing, Volleys,       │
+│  (18.8%)    │ Dribbling, LongShots y Agility.                        │
+│             │ Perfil: Delantero rápido y habilidoso.                  │
+├─────────────┼────────────────────────────────────────────────────────┤
+│  Cluster 3  │ DEFENSA CENTRAL: Fuerte en tackleo y marcaje.          │
+│  (24.7%)    │ Baja visión y escasos recursos ofensivos.               │
+│             │ Perfil: Zaguero ordenado y disciplinado.                │
+├─────────────┼────────────────────────────────────────────────────────┤
+│  Cluster 4  │ JUGADOR OFENSIVO CREATIVO: Lidera en Skill Moves,      │
+│  (17.5%)    │ Volleys, Finishing, Curve y FKAccuracy.                 │
+│             │ Perfil: Extremo o mediapunta desequilibrante.           │
+└─────────────┴────────────────────────────────────────────────────────┘
+
+-------------------------------------------------------------------
+SLIDE 5: CONCLUSIONES Y APLICACIONES PRÁCTICAS
+-------------------------------------------------------------------
+TÍTULO: Un Modelo Reproducible con Valor Real en el Fútbol Profesional
+
+TEXTO:
+El pipeline PCA + K-Means logró:
+
+  ✔ Segmentar más de 15,000 jugadores en 5 arquetipos tácticos claros.
+  ✔ Identificar perfiles latentes más allá de la posición declarada.
+  ✔ Proporcionar una herramienta objetiva para Scouting y análisis de plantillas.
+
+Aplicaciones prácticas inmediatas:
+  → Armar equipos balanceados combinando jugadores de clusters distintos.
+  → Identificar jugadores sub-utilizados en el mercado de fichajes.
+  → Comparar elencos de diferentes ligas con un lenguaje común.
+
+Próximos pasos recomendados:
+  → Validación con datos de temporadas más recientes (FIFA20, FIFA21).
+  → Análisis separado para porteros con variables específicas.
+  → Afinamiento del número de clusters con técnicas avanzadas (Gap Statistic).
+  → Integración con datos de rendimiento real (GPS, estadísticas de partido).
+
+
