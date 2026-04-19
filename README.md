@@ -7,7 +7,7 @@ Equipo 5 · Módulo 3
 
 ## Objetivo
 
-Identificar segmentos de jugadores dentro del dataset FIFA19 que compartan características técnicas y físicas similares, con el fin de descubrir perfiles que permitan construir combinaciones óptimas de jugadores en un equipo ficticio.
+Identificar segmentos de jugadores dentro del dataset FIFA19 que compartan características técnicas y físicas similares, utilizando únicamente habilidades "puras" (excluyendo métricas compuestas como Overall o Potential). El resultado sirve como base para la construcción de equipos ficticios balanceados tácticamente.
 
 ---
 
@@ -15,8 +15,8 @@ Identificar segmentos de jugadores dentro del dataset FIFA19 que compartan carac
 
 ```
 ciencia_datos_m3_e2/
-├── datos/
-│   ├── FIFA19-DS.csv          # Dataset principal (+17,000 jugadores, 75 atributos)
+├── Datos/
+│   ├── FIFA19-DS.csv          # Dataset principal (17,140 jugadores, 76 atributos)
 │   └── FIFA19-MD.csv          # Diccionario de variables
 ├── images/                    # Figuras generadas por el notebook
 ├── g33_m3ep2_eq5_notebook.ipynb
@@ -31,16 +31,23 @@ ciencia_datos_m3_e2/
 | Paso | Descripción |
 |------|-------------|
 | 1. EDA | Exploración de distribuciones, nulos y correlaciones |
-| 2. Selección de variables | 20 habilidades puras (sin métricas compuestas) |
-| 3. Reducción dimensional | PCA — 6 componentes → ~89.6% de varianza |
-| 4. Clustering | K-Means con k=5, evaluado con Elbow + Silhouette |
-| 5. Perfilamiento | Z-scores por cluster para identificar arquetipos |
+| 2. Selección de variables | 27 habilidades puras (sin métricas compuestas ni biométricas estáticas) |
+| 3. Reducción dimensional | PCA — 7 componentes → ~88.8% de varianza |
+| 4. Clustering | K-Means con k=5, evaluado con Codo + Calinski-Harabasz + Silhouette |
+| 5. Perfilamiento | Kruskal-Wallis + Test de Dunn (post-hoc Bonferroni) + Radar Chart |
 
 ---
 
-## Variables Seleccionadas (20)
+## Variables Seleccionadas (27)
 
-`Age` · `Agility` · `Crossing` · `Curve` · `Dribbling` · `FKAccuracy` · `Finishing` · `HeadingAccuracy` · `Height` · `Interceptions` · `LongPassing` · `LongShots` · `Marking` · `ShortPassing` · `Skill Moves` · `SlidingTackle` · `StandingTackle` · `Vision` · `Volleys` · `Weight`
+| Grupo | Variables |
+|---|---|
+| **Técnicas (9)** | Crossing, Finishing, ShortPassing, Volleys, Dribbling, FKAccuracy, LongPassing, BallControl, LongShots |
+| **Físicas (9)** | Acceleration, SprintSpeed, Agility, Balance, ShotPower, Jumping, Stamina, Strength, HeadingAccuracy |
+| **Mentales/Tácticas (4)** | Reactions, Vision, Positioning, Composure |
+| **Defensivas (5)** | Aggression, Interceptions, Marking, StandingTackle, SlidingTackle |
+
+> Se excluyen `Height`, `Weight`, `Age`, `Overall`, `Potential` y `Special` para evitar sesgos de reputación y métricas no tácticas.
 
 ---
 
@@ -48,25 +55,35 @@ ciencia_datos_m3_e2/
 
 ### 1. Distribución de Variables
 ![Distribuciones](images/01_distribuciones.png)
-> Histogramas con KDE de las 20 variables seleccionadas. Variables físicas como `Height` y `Weight` presentan distribución normal; habilidades técnicas como `Finishing` muestran distribuciones bimodales reflejando especialización por posición.
+> Histogramas con KDE de las 27 variables seleccionadas. Variables defensivas como `StandingTackle` y `Marking` presentan distribuciones bimodales, anticipando la separación de roles tácticos.
 
 ---
 
 ### 2. Matriz de Correlación
 ![Correlación](images/02_correlacion.png)
-> Alta multicolinealidad entre grupos de variables técnicas (ofensivas y defensivas), lo que justifica el uso de PCA para reducir redundancia.
+> Alta multicolinealidad entre grupos técnicos y defensivos, justificando el uso de PCA para reducir redundancia antes del clustering.
 
 ---
 
 ### 3. Scree Plot — Varianza Explicada por PCA
 ![Scree Plot](images/03_scree_plot.png)
-> Con 6 componentes principales se retiene el ~89.6% de la varianza total. La línea naranja marca el umbral del 88%.
+> Con 7 componentes principales se retiene el ~88.8% de la varianza total. La línea naranja marca el umbral del 88%.
+
+| Componente | Varianza individual | Varianza acumulada |
+|---|---|---|
+| PC1 | 52.4% | 52.4% |
+| PC2 | 17.2% | 69.6% |
+| PC3 | 7.1% | 76.7% |
+| PC4 | 5.0% | 81.7% |
+| PC5 | 3.6% | 85.2% |
+| PC6 | 2.2% | 87.5% |
+| PC7 | 1.4% | **88.8%** |
 
 ---
 
 ### 4. Heatmap de Cargas (Loadings)
 ![Loadings PCA](images/04_loadings_pca.png)
-> PC1 agrupa habilidades técnico-ofensivas; PC2 carga sobre variables defensivas; PC3 captura atributos físicos (altura y peso).
+> PC1 agrupa habilidades técnico-ofensivas (cargas altas en Dribbling, BallControl, ShortPassing); PC2 carga sobre variables defensivas (StandingTackle, Marking, Interceptions); PC3 captura reacciones y condición física.
 
 ---
 
@@ -76,9 +93,16 @@ ciencia_datos_m3_e2/
 
 ---
 
-### 6. Método del Codo y Coeficiente de Silueta
-![Codo y Silueta](images/06_codo_silueta.png)
-> La combinación de ambas métricas indica **k=5** como número óptimo de clusters (Silhouette Score: 0.307).
+### 6. Métricas de Selección de k
+![Métricas k](images/06_metricas_k.png)
+> Calinski-Harabasz (métrica principal) y Silhouette coinciden en **k=4** como óptimo métrico. Se selecciona **k=5** combinando la métrica con el conocimiento de dominio (5 roles tácticos en fútbol).
+
+| k | Inercia | C-H Score | Silhouette |
+|---|---|---|---|
+| 4 | 137,550.8 | **11,098.0** | **0.3041** |
+| 5 | 120,723.0 | 10,080.2 | 0.2836 |
+| 6 | 111,493.1 | 9,015.0 | 0.2714 |
+| 7 | 101,480.8 | 8,534.9 | 0.2574 |
 
 ---
 
@@ -89,20 +113,30 @@ ciencia_datos_m3_e2/
 ---
 
 ### 8. Radar Chart de Habilidades por Cluster
-![Radar Chart](images/08_radar_clusters.png)
-> Perfil normalizado (0–1) de cada cluster. Permite comparar visualmente las fortalezas y debilidades de cada arquetipo.
+![Radar Chart](images/radar_clusters.png)
+> Perfil normalizado (0–1) de cada cluster en 13 variables clave. Permite comparar visualmente las fortalezas y debilidades de cada arquetipo.
 
 ---
 
 ## Perfiles Identificados (k=5)
 
-| Cluster | Arquetipo | Fortalezas | Debilidades |
-|---------|-----------|------------|-------------|
-| 0 | Defensor clásico | Marking, Tackle, Interceptions | Vision, Finishing |
-| 1 | Especialista físico | Height, Weight | Dribbling, Técnica general |
-| 2 | Jugador técnico-ofensivo | Skill Moves, Curve, Finishing | Tackle, Marking |
-| 3 | Delantero de área | Finishing, Volleys, LongShots | Interceptions, Tackle |
-| 4 | Mediocampista completo | Interceptions, Tackle, LongPassing | Físico (Height/Weight) |
+| Cluster | % Jugadores | Perfil Táctico | Fortalezas clave |
+|---------|-------------|----------------|-----------------|
+| **C0** | 28.5% | Mediocampista Defensivo (CDM) | Interceptions, Marking, StandingTackle, LongPassing |
+| **C1** | 10.8% | Portero (GK) | Débil en todas las variables de campo |
+| **C2** | 17.9% | Delantero / Atacante (ST/CF) | Finishing, Volleys, Positioning, LongShots |
+| **C3** | 22.7% | Defensa Central (CB) | StandingTackle, SlidingTackle, Marking, Strength |
+| **C4** | 20.1% | Extremo / Mediocampista Ofensivo (LW/RW/CAM) | Finishing, Acceleration, SprintSpeed, Positioning |
+
+---
+
+## Validación Estadística
+
+- **Kruskal-Wallis**: Las 27 variables discriminan significativamente entre clusters (p<0.05 en todas).
+- **Test de Dunn (Bonferroni)**: Todos los pares de clusters son estadísticamente distintos.
+- **Silhouette Score final**: 0.2836 · **Calinski-Harabasz final**: 10,080.22
+
+Las variables con mayor poder discriminante son `StandingTackle`, `SlidingTackle` e `Interceptions`, indicando que la dimensión defensiva es el eje principal de diferenciación entre roles.
 
 ---
 
@@ -113,8 +147,8 @@ random_seed = 333
 np.random.seed(random_seed)
 ```
 
-**Dependencias principales:** `pandas` · `numpy` · `scikit-learn` · `matplotlib` · `seaborn` · `plotly` · `kaleido`
+**Dependencias principales:** `pandas` · `numpy` · `scikit-learn` · `matplotlib` · `seaborn` · `plotly` · `kaleido` · `scipy` · `scikit-posthocs`
 
 ```bash
-pip install pandas numpy scikit-learn matplotlib seaborn plotly kaleido
+pip install pandas numpy scikit-learn matplotlib seaborn plotly kaleido scipy scikit-posthocs
 ```
